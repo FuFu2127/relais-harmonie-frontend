@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.leaflet-pane, 
+.leaflet-tile,
+.leaflet-overlay-pane,
+.leaflet-marker-pane,
+.leaflet-shadow-pane,
+.leaflet-popup-pane {
+    z-index: 0 !important;
+}
+.leaflet-control-container {
+    z-index: 0 !important;
+}

@@ -1,0 +1,23 @@
+.text-strokebannert {
+    -webkit-text-stroke: 2px #353839;
+}
+
+.text-strokebannerp {
+    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.3);
+}
+
+.text-strokestattitle {
+    -webkit-text-stroke: 2px #168108;
+}
+
+.text-strokestatp {
+    -webkit-text-stroke: 1px #168108;
+}
+
+.text-strokestatnumber {
+    -webkit-text-stroke: 2px black;
+}
+
+.text-strokechallengeh3 {
+    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.3);
+}
