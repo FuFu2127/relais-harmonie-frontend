@@ -6,7 +6,7 @@ import { FaRegCompass } from "react-icons/fa6";
 const NotFound = () => {
     
     return (
-        <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] text-center bg-custom-greyd text-white px-6">
+        <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] text-center bg-custom-grey text-custom-greyd px-6">
             <motion.div 
             animate={{ y: [0, -10, 0], rotate: [0, 5, 0, -5, 0],}}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut",}}

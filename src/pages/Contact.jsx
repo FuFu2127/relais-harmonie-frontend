@@ -2,12 +2,13 @@ import { FaCircleArrowRight, FaXTwitter, FaDiscord, FaPinterest } from "react-ic
 import fond from '../assets/img/background-form.jpg';
 import FAQ from '../components/FAQ';
 import { toast } from "react-toastify";
+import axios from "axios";
 
 const Contact = () => {
 
     const emailRegex = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Vérifie si l'email est au format valide
 
-    const handleSubmit = (s) => { // Fonction pour gérer la soumission du formulaire
+    const handleSubmit = async (s) => { // Fonction pour gérer la soumission du formulaire
             s.preventDefault(); // empêche le rechargement
             
             const formData = new FormData(s.target); // Récupère les données du formulaire
@@ -33,11 +34,38 @@ const Contact = () => {
                 return;
             }
 
-            toast.success("Message envoyé avec succès !", { // Affiche un message de succès si tout est valide
-                position: "top-center",
-                autoClose: 3000,
-            });
-            s.target.reset(); // Réinitialise le formulaire après l'envoi
+            try {
+                await axios.post(
+                    "http://localhost:8000/api/contacts",
+                    {
+                        firstName: firstname,
+                        name: name,
+                        email: email,
+                        subject: subject,
+                        message: message,
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/ld+json",
+                        },
+                    }
+                );
+                toast.success("Message envoyé avec succès !", { // Affiche un message de succès si tout est valide
+                    position: "top-center",
+                    autoClose: 3000,
+                });
+                s.target.reset(); // Réinitialise le formulaire après l'envoi
+            } catch (error) {
+                console.error(error.response ? error.response.data : error);
+                toast.error(
+                    error.response?.data?.detail ||
+                    "Erreur lors de l'envoi du message.",
+                    {
+                        position: "top-center",
+                        autoClose: 3000,
+                    }
+                );
+            }
     };
 
     return (
@@ -69,10 +97,20 @@ const Contact = () => {
                 <div>
                     <label className="block font-bold mb-2">Sujet *</label>
                     <div className="flex flex-wrap gap-4">
-                        {["Problème technique", "Question", "Suggestion"].map((option, idx) => (
+                        {[
+                            { label: "Problème technique", value: "problème technique" },
+                            { label: "Question", value: "question" },
+                            { label: "Suggestion", value: "suggestion" }
+                        ].map((option, idx) => (
                             <label key={idx} className="flex items-center space-x-2">
-                                <input type="radio" name="subject" value={option} className="accent-custom-green" />
-                                <span>{option}</span>
+                                <input
+                                    type="radio"
+                                    name="subject"
+                                    value={option.value}
+                                    className="accent-custom-green"
+                                    required
+                                />
+                                <span>{option.label}</span>
                             </label>
                         ))}
                     </div>
