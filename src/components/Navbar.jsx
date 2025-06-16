@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import logo from '../assets/logo.png';
 import LoginModal from "./LoginModal";
@@ -18,6 +18,21 @@ const Navbar = () => {
     const [isLoginOpen, setIsLoginOpen] = useState(false); // Bolean si la modal est ouverte (true), modal initialisé à false, setIsLoginOpen (met a jour sont état)
     const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false); // same
     const [isRegisterOpen, setIsRegisterOpen] = useState(false); // same
+
+    // Ajoute cet état :
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    // Vérifie le token au chargement et à chaque ouverture de modal
+    useEffect(() => {
+        setIsAuthenticated(!!localStorage.getItem("jwt"));
+    }, [isLoginOpen, isRegisterOpen]);
+
+    // Fonction de déconnexion
+    const handleLogout = () => {
+        localStorage.removeItem("jwt");
+        setIsAuthenticated(false);
+        setIsLoginOpen(false);
+    };
 
     return (
         <nav className="bg-custom-greyd py-4 h-[8rem] border-b-4 border-custom-green sticky top-0 z-50">
@@ -55,9 +70,23 @@ const Navbar = () => {
                 
                 {/* Bouton Co */}
                 <div className="hidden custom:block">
-                    <button onClick={() => setIsLoginOpen(true)} className="bg-custom-green border-custom-yellow border-2 rounded-bl-xl rounded-tr-xl text-white px-4 py-2 font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors" aria-label="Se connecter">
-                        Se connecter
-                    </button>
+                    {isAuthenticated ? (
+        <button
+            onClick={handleLogout}
+            className="bg-red-600 border-custom-yellow border-2 rounded-bl-xl rounded-tr-xl text-white px-4 py-2 font-bold hover:bg-custom-yellow hover:text-red-600 hover:border-red-600 transition-colors"
+            aria-label="Se déconnecter"
+        >
+            Se déconnecter
+        </button>
+    ) : (
+        <button
+            onClick={() => setIsLoginOpen(true)}
+            className="bg-custom-green border-custom-yellow border-2 rounded-bl-xl rounded-tr-xl text-white px-4 py-2 font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors"
+            aria-label="Se connecter"
+        >
+            Se connecter
+        </button>
+    )}
                 </div>
 
                 {/* Bouton Menu Hamburger sur mobile */}
@@ -114,6 +143,7 @@ const Navbar = () => {
             setIsLoginOpen(false);
             setIsRegisterOpen(true);
             }} // Modal pour inscription
+            onLoginSuccess={() => setIsAuthenticated(true)}
             />
 
             {/* Modal réinitialisation */}

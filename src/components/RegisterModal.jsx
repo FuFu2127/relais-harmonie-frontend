@@ -1,6 +1,7 @@
 import { IoClose } from "react-icons/io5";
 import { toast } from 'react-toastify';
 import { useState } from "react";
+import axios from "axios";
 
 const RegisterModal = ({ isOpen, onClose, onLogin}) => {
     const [username, setUsername] = useState(""); // Pseudonyme valeur = chaîne de caractère / setUsername met a jour l'état
@@ -8,7 +9,7 @@ const RegisterModal = ({ isOpen, onClose, onLogin}) => {
     const [password, setPassword] = useState(""); // Mot de passe valeur = chaîne de caractère / setPassword met a jour l'état
 
     // Fonction gestion soumission inscription
-    const handleRegister = (e) => { // Annule le comportement par défaut du formulaire (rechargement de la page)
+    const handleRegister = async (e) => { // Annule le comportement par défaut du formulaire (rechargement de la page)
         e.preventDefault();
 
         // Vérification si les champs pseudonyme, email et mot de passe sont remplis
@@ -44,14 +45,27 @@ const RegisterModal = ({ isOpen, onClose, onLogin}) => {
             return;
         };
 
-        // Affiche un message de succès (simulation de l'inscription)
-        toast.success ("Compte créer !", {
-            position: "top-center",
-            autoClose: 3000,
-        });
-        setUsername(""); // Réinitialise le champ pseudonyme après l'inscription
-        setEmail(""); // Réinitialise le champ email après l'inscription
-        setPassword(""); // Réinitialise le champ mot de passe après l'inscription
+        try {
+            await axios.post("http://localhost:8000/api/register", {
+                pseudo: username,
+                email: email,
+                password: password
+            });
+            toast.success("Compte créé !", {
+                position: "top-center",
+                autoClose: 3000,
+            });
+            setUsername("");
+            setEmail("");
+            setPassword("");
+            // Optionnel : ouvrir la modal de connexion
+            // onLogin();
+        } catch (error) {
+            toast.error("Erreur lors de l'inscription : " + (error.response?.data['hydra:description'] || error.message), {
+                position: "top-center",
+                autoClose: 5000,
+            });
+        }
     };
 
     if (!isOpen) return null; // bolean pour controller la visibilité de la modal

@@ -4,6 +4,7 @@ import fond from '../assets/img/background-form.jpg';
 import { FaCircleArrowRight } from "react-icons/fa6";
 import { FaCopy } from "react-icons/fa6";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 
 const Publish = () => {
@@ -28,7 +29,7 @@ const Publish = () => {
         return `https://relaisdharmonie.fr/invite/${code}`; // Génération d'un lien d'invitation avec un code aléatoire
     };
 
-    const handleSubmit = (s) => { // Fonction pour gérer la soumission du formulaire
+    const handleSubmit = async (s) => { // Fonction pour gérer la soumission du formulaire
         s.preventDefault(); // Empêche le rechargement de la page lors de la soumission du formulaire
         const formData = new FormData(s.target); // Récupération des données du formulaire
         const title = formData.get("title")?.trim(); // Récupération du titre du formulaire et suppression des espaces inutiles
@@ -45,12 +46,35 @@ const Publish = () => {
             return;
         };
 
-        const link = generateInviteLink(); // Génération du lien d'invitation unique
-        setInviteLink(link); // Mise à jour de l'état du lien d'invitation avec le lien généré
-        setSubmitted(true); // Mise à jour de l'état de soumission du formulaire pour afficher le message de succès
-        setLocalisationActive(false); // Réinitialisation de l'état de localisation active
-        s.target.reset(); // Réinitialisation du formulaire après la soumission
-        setSelectedDefi(""); // Réinitialisation du défi sélectionné après la soumission
+        // Construction de l'objet à envoyer
+        const actData = {
+            title,
+            description,
+            category,
+            challenge: selectedDefi || null, // Si un défi est sélectionné, on l'ajoute, sinon on met null
+            localisation: localisation || null, // Si la localisation est active, on l'ajoute, sinon on met null
+            image: formData.get("image") ? formData.get("image").name : null // Si une image est sélectionnée, on récupère son nom, sinon on met null
+        };
+
+        // Récupère le token JWT
+        const token = localStorage.getItem('jwt'); // ou selon ton stockage
+
+        try {
+            await axios.post("http://localhost:8000/api/acts", actData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/ld+json"
+                }
+            });
+            const link = generateInviteLink(); // Génération du lien d'invitation unique
+            setInviteLink(link); // Mise à jour de l'état du lien d'invitation avec le lien généré
+            setSubmitted(true); // Mise à jour de l'état de soumission du formulaire pour afficher le message de succès
+            setLocalisationActive(false); // Réinitialisation de l'état de localisation active
+            s.target.reset(); // Réinitialisation du formulaire après la soumission
+            setSelectedDefi(""); // Réinitialisation du défi sélectionné après la soumission
+        } catch {
+            toast.error("Erreur lors de la publication de l'acte");
+        }
     };
 
     const handleReset = () => { // Fonction pour réinitialiser le formulaire et l'état après la soumission
@@ -60,6 +84,19 @@ const Publish = () => {
         setSelectedDefi(""); // Réinitialisation du défi sélectionné
     };
 
+    // Vérifie si l'utilisateur est connecté
+    const token = localStorage.getItem('jwt');
+
+    if (!token) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="bg-custom-greyl p-8 rounded-xl shadow-lg text-center border-2 border-custom-green">
+                    <h2 className="text-2xl font-bold text-custom-greyd mb-4">Vous devez être connecté pour publier un acte.</h2>
+                    <p className="mb-4">Merci de vous connecter ou de créer un compte pour accéder à cette fonctionnalité.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-custom-grey text-custom-greyd flex flex-col items-center px-4 py-6">

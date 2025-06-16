@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { toast } from 'react-toastify';
+import axios from "axios";
 
-const LoginModal = ({ isOpen, onClose, onForgotPassword, onRegister }) => {
+const LoginModal = ({ isOpen, onClose, onForgotPassword, onRegister, onLoginSuccess }) => {
         // Gestion de l'état email
         const [email, setEmail] = useState(""); // email valeur = chaîne de caractère / setEmail met a jour l'état
         // Gestion de l'état mdp
         const [password, setPassword] = useState(""); // mot de passe valeur = chaîne de caractère / setPassword met a jour l'état
 
         // fonction gestion soumission connexion
-        const handleLogin = (e) => {
+        const handleLogin = async (e) => {
         e.preventDefault(); // Annule le comportement par défaut du formulaire (rechargement de la page)
 
         // Vérification si les champs email et mot de passe sont remplis
@@ -31,6 +32,28 @@ const LoginModal = ({ isOpen, onClose, onForgotPassword, onRegister }) => {
             });
             return;
         };
+
+        try {
+            const response = await axios.post("http://127.0.0.1:8000/api/login_check", {
+                email: email,
+                password: password
+            });
+            const token = response.data.token;
+            localStorage.setItem("jwt", token);
+            toast.success("Connexion réussie !", {
+                position: "top-center",
+                autoClose: 3000,
+            });
+            setEmail("");
+            setPassword("");
+            onClose();
+            if (onLoginSuccess) onLoginSuccess();
+        } catch (error) {
+            toast.error("Erreur de connexion : " + (error.response?.data?.message || error.message), {
+                position: "top-center",
+                autoClose: 5000,
+            });
+        }
     };
     // Si la modal n'est pas ouverte, ne rien afficher
     if (!isOpen) return null; // bolean pour controller la visibilité de la modal
