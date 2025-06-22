@@ -28,10 +28,10 @@ const Navbar = () => {
     }, [isLoginOpen, isRegisterOpen]);
 
     // Fonction de déconnexion
-    const handleLogout = () => {
-        localStorage.removeItem("jwt");
-        setIsAuthenticated(false);
-        setIsLoginOpen(false);
+    const handleLogout = () => { // Supprime le token JWT du localStorage et met à jour l'état d'authentification
+        localStorage.removeItem("jwt"); // Supprime le token JWT du localStorage
+        setIsAuthenticated(false);  // Met à jour l'état d'authentification
+        setIsLoginOpen(false); // Ferme la modal de connexion si elle est ouverte
     };
 
     return (
@@ -126,9 +126,27 @@ const Navbar = () => {
                         Contact
                     </NavLink>
 
-                    <button onClick={() => {setIsLoginOpen(true); toggleMenu();}} className="bg-custom-green border-custom-yellow border-2 rounded-bl-xl rounded-tr-xl text-white px-4 py-2 font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors" aria-label="Se connecter">
-                        Se connecter
-                    </button>
+                    {isAuthenticated ? (
+                        <button 
+                            onClick={() => {
+                                handleLogout();
+                                toggleMenu();
+                            }} 
+                            className="bg-red-600 border-custom-yellow border-2 rounded-bl-xl rounded-tr-xl text-white px-4 py-2 font-bold hover:bg-custom-yellow hover:text-red-600 hover:border-red-600 transition-colors" 
+                            aria-label="Se déconnecter">
+                            Se déconnecter
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => {
+                                setIsLoginOpen(true); 
+                                toggleMenu();
+                            }} 
+                            className="bg-custom-green border-custom-yellow border-2 rounded-bl-xl rounded-tr-xl text-white px-4 py-2 font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors" 
+                            aria-label="Se connecter">
+                            Se connecter
+                        </button>
+                    )}
                 </div>
             )}
 

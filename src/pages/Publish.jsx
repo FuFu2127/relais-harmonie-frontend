@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import fond from '../assets/img/background-form.jpg';
 import { FaCircleArrowRight } from "react-icons/fa6";
 import { FaCopy } from "react-icons/fa6";
@@ -8,72 +8,225 @@ import axios from "axios";
 
 
 const Publish = () => {
-    const location = useLocation(); // Récupération de l'URL actuelle
-    const params = new URLSearchParams(location.search); //Extraction des paramètres de l'URL (Si l'URL est de la forme /publish?defi=Planter%20100%20arbres)
-    const defiParam = params.get("defi"); // Récupération du paramètre "defi" de l'URL
-
-    const [localisationActive, setLocalisationActive] = useState(false); // État pour gérer l'affichage du champ de localisation
-    const [submitted, setSubmitted] = useState(false); // État pour gérer l'état de soumission du formulaire
-    const [inviteLink, setInviteLink] = useState(""); // État pour stocker le lien d'invitation généré
-    const [selectedDefi, setSelectedDefi] = useState(""); // État pour gérer le défi sélectionné
-
-    useEffect(() => { // Vérification si le paramètre "defi" est présent dans l'URL
-        if (defiParam) { // Si oui, on met à jour l'état du défi sélectionné
-            setSelectedDefi(defiParam); // Met à jour le défi sélectionné avec la valeur du paramètre "defi"
+    // 1. Déclare tous les états au début
+    const [localisationActive, setLocalisationActive] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [inviteLink, setInviteLink] = useState("");
+    const [selectedDefi, setSelectedDefi] = useState("");
+    const [challenges, setChallenges] = useState([]);
+    
+    // 2. Récupère les informations de navigation et params
+    const location = useLocation();
+    const navigate = useNavigate();
+    const params = new URLSearchParams(location.search);
+    const defiTitleParam = params.get("defi_title");
+    const defiIdParam = params.get("defi_id");
+    const token = localStorage.getItem('jwt');
+    
+    // 3. Utilisation d'un useEffect pour définir le défi sélectionné initialement
+    useEffect(() => {
+        console.log('URL actuelle:', location.pathname + location.search);
+        console.log('Paramètres URL:', { defiIdParam, defiTitleParam });
+        
+        // Si l'ID est fourni directement, utilise-le
+        if (defiIdParam) {
+            console.log('ID de défi défini depuis URL:', defiIdParam);
+            setSelectedDefi(defiIdParam);
         }
-    }, [defiParam]); // useEffect pour mettre à jour le défi sélectionné si le paramètre "defi" change
-
-    const generateInviteLink = () => { // Fonction pour générer un lien d'invitation unique
-        // Simulation de lien unique
-        const code = Math.random().toString(36).substring(2,8); // Génération d'un code aléatoire de 6 caractères
-        return `https://relaisdharmonie.fr/invite/${code}`; // Génération d'un lien d'invitation avec un code aléatoire
-    };
-
-    const handleSubmit = async (s) => { // Fonction pour gérer la soumission du formulaire
-        s.preventDefault(); // Empêche le rechargement de la page lors de la soumission du formulaire
-        const formData = new FormData(s.target); // Récupération des données du formulaire
-        const title = formData.get("title")?.trim(); // Récupération du titre du formulaire et suppression des espaces inutiles
-        const description = formData.get("description")?.trim(); // Récupération de la description du formulaire et suppression des espaces inutiles
-        const category = formData.get("category"); // Récupération de la catégorie sélectionnée dans le formulaire
-        const localisationValue = formData.get("localisation"); // Récupération de la valeur de la localisation (oui ou non) sélectionnée dans le formulaire
-        const localisation = localisationValue === "oui" ? formData.get("place")?.trim() : localisationValue === "non"; // Si la localisation est "oui", on récupère la valeur du champ de localisation, sinon on met false
-
-        if (!title || !description || !category || localisationValue === null || localisation === false || localisation === "" ) { // Vérification si tous les champs obligatoires sont remplis
-            toast.error("Veuillez remplir tous les champs obligatoire", { // Affichage d'un message d'erreur si un champ obligatoire est manquant
-                position: "top-center",
-                autoClose: 3000,
+    }, [defiIdParam, defiTitleParam, location.pathname, location.search]);
+    
+    // Charger les défis depuis l'API
+    useEffect(() => {
+        console.log('Tentative de chargement des défis...');
+        
+        axios.get('http://localhost:8000/api/challenges')
+            .then(response => {
+                console.log('Réponse complète API challenges:', response.data);
+                
+                // Extraction des défis
+                let challengesData = [];
+                
+                if (response.data && Array.isArray(response.data.member)) {
+                    challengesData = response.data.member;
+                    console.log('Défis trouvés dans member:', challengesData);
+                } else if (response.data && response.data["hydra:member"] && Array.isArray(response.data["hydra:member"])) {
+                    challengesData = response.data["hydra:member"];
+                    console.log('Défis trouvés dans hydra:member:', challengesData);
+                } else if (Array.isArray(response.data)) {
+                    challengesData = response.data;
+                    console.log('Défis trouvés dans tableau direct:', challengesData);
+                } else {
+                    console.log('Exploration des données:', response.data);
+                    
+                    if (response.data && typeof response.data === 'object') {
+                        for (const key in response.data) {
+                            if (Array.isArray(response.data[key])) {
+                                challengesData = response.data[key];
+                                console.log(`Défis trouvés dans ${key}:`, challengesData);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if (challengesData && challengesData.length > 0) {
+                    console.log('Défis chargés avec succès:', challengesData);
+                    setChallenges(challengesData);
+                    
+                    // Priorité #1: Si l'ID est fourni, utilise-le directement
+                    if (defiIdParam && !selectedDefi) {
+                        console.log('Sélection du défi par ID:', defiIdParam);
+                        setSelectedDefi(defiIdParam);
+                    }
+                    // Priorité #2: Si nous avons un titre de défi, trouve l'ID correspondant
+                    else if (defiTitleParam && !selectedDefi) {
+                        console.log('Recherche du défi par titre:', defiTitleParam);
+                        const matchingChallenge = challengesData.find(
+                            c => c.title === defiTitleParam
+                        );
+                        
+                        if (matchingChallenge) {
+                            console.log('Défi trouvé par titre:', matchingChallenge);
+                            setSelectedDefi(matchingChallenge.id);
+                        } else {
+                            console.log('Défi non trouvé par titre');
+                        }
+                    }
+                    // Priorité #3: Compatibilité avec l'ancien format (juste "defi")
+                    else {
+                        const oldDefiParam = params.get("defi");
+                        if (oldDefiParam && !selectedDefi) {
+                            console.log('Utilisation de l\'ancien paramètre defi:', oldDefiParam);
+                            const matchingChallenge = challengesData.find(
+                                c => c.title === oldDefiParam
+                            );
+                            
+                            if (matchingChallenge) {
+                                console.log('Défi trouvé par ancien paramètre:', matchingChallenge);
+                                setSelectedDefi(matchingChallenge.id);
+                            }
+                        }
+                    }
+                } else {
+                    console.warn('Aucun défi trouvé dans la réponse API');
+                    // Utilise des défis de test si nécessaire
+                    setChallenges([
+                        { id: 1, title: "Défi test 1" },
+                        { id: 2, title: "Défi test 2" }
+                    ]);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement des défis:', error);
+                setChallenges([
+                    { id: 1, title: "Défi test (erreur)" },
+                    { id: 2, title: "Défi test 2 (erreur)" }
+                ]);
             });
-            return;
-        };
+    }, [defiIdParam, defiTitleParam, selectedDefi, params]);
 
-        // Construction de l'objet à envoyer
-        const actData = {
-            title,
-            description,
-            category,
-            challenge: selectedDefi || null, // Si un défi est sélectionné, on l'ajoute, sinon on met null
-            localisation: localisation || null, // Si la localisation est active, on l'ajoute, sinon on met null
-            image: formData.get("image") ? formData.get("image").name : null // Si une image est sélectionnée, on récupère son nom, sinon on met null
-        };
 
-        // Récupère le token JWT
-        const token = localStorage.getItem('jwt'); // ou selon ton stockage
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitted(true);
 
         try {
-            await axios.post("http://localhost:8000/api/acts", actData, {
+            // Validation côté client
+            const title = e.target.title.value;
+            const description = e.target.description.value;
+            const category = e.target.category.value;
+            
+            if (!title || !description || !category) {
+                toast.error("Tous les champs obligatoires doivent être remplis");
+                setSubmitted(false);
+                return;
+            }
+
+            // Création du FormData
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('category', category);
+            
+            // Gestion du défi
+            if (selectedDefi && selectedDefi !== "") {
+                formData.append('challenge', `/api/challenges/${selectedDefi}`);
+                console.log(`Ajout du défi: /api/challenges/${selectedDefi}`);
+            }
+            
+            // Gestion de l'image
+            const imageFile = e.target.imageFile.files[0];
+            if (imageFile) {
+                formData.append('imageFile', imageFile);
+                console.log(`Ajout de l'image: ${imageFile.name}`);
+            }
+            
+            // Gestion de la localisation
+            if (localisationActive && e.target.place && e.target.place.value) {
+                formData.append('location', e.target.place.value);
+                console.log(`Ajout de la localisation: ${e.target.place.value}`);
+            }
+            
+            // Debug des données envoyées
+            console.log("Contenu du FormData:");
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+            
+            // Envoi de la requête
+            const response = await axios.post("http://localhost:8000/api/acts", formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/ld+json"
+                    Authorization: `Bearer ${token}`
                 }
             });
-            const link = generateInviteLink(); // Génération du lien d'invitation unique
-            setInviteLink(link); // Mise à jour de l'état du lien d'invitation avec le lien généré
-            setSubmitted(true); // Mise à jour de l'état de soumission du formulaire pour afficher le message de succès
-            setLocalisationActive(false); // Réinitialisation de l'état de localisation active
-            s.target.reset(); // Réinitialisation du formulaire après la soumission
-            setSelectedDefi(""); // Réinitialisation du défi sélectionné après la soumission
-        } catch {
-            toast.error("Erreur lors de la publication de l'acte");
+            
+            console.log("Réponse API complète:", response);
+            
+            // Vérifie si l'acte a été créé avec succès (statut 201)
+            if (response.status === 201) {
+                toast.success("Ton acte a été publié avec succès !");
+                
+                // Ne génère pas de lien d'invitation basé sur l'ID puisque la réponse ne contient pas de données
+                setInviteLink(`http://localhost:5173/community`);  // Redirige vers la communauté
+                
+                // Optionnel : Réinitialise le formulaire
+                e.target.reset();
+                setSelectedDefi("");
+                setLocalisationActive(false);
+                setSubmitted(false);
+                
+                // Optionnel : Redirige vers la page communauté après quelques secondes
+                setTimeout(() => {
+                    navigate('/community');
+                }, 2000);
+            } else {
+                console.warn("Réponse inattendue de l'API:", response);
+                toast.warning("Acte créé mais avec une réponse inattendue");
+            }
+        } catch (error) {
+            // Analyse détaillée de l'erreur
+            console.error("Erreur complète:", error);
+            
+            let errorMessage = "Erreur lors de la publication de l'acte";
+            
+            if (error.response) {
+                console.error("Détails de l'erreur:", error.response.data);
+                
+                if (error.response.data && error.response.data['hydra:description']) {
+                    errorMessage += ` : ${error.response.data['hydra:description']}`;
+                } else if (error.response.data && error.response.data.detail) {
+                    errorMessage += ` : ${error.response.data.detail}`;
+                } else if (error.response.status === 500) {
+                    errorMessage += " : Erreur serveur interne. Vérifiez les logs du serveur.";
+                } else {
+                    errorMessage += ` : ${error.message}`;
+                }
+            } else {
+                errorMessage += ` : ${error.message}`;
+            }
+            
+            toast.error(errorMessage);
+            setSubmitted(false);
         }
     };
 
@@ -85,8 +238,6 @@ const Publish = () => {
     };
 
     // Vérifie si l'utilisateur est connecté
-    const token = localStorage.getItem('jwt');
-
     if (!token) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -136,21 +287,23 @@ const Publish = () => {
                     <div>
                         <label className="block font-bold">Défis</label>
                         <select 
-                        name="challenge" 
-                        className="w-full p-3 border rounded-bl-xl rounded-tr-xl border-custom-green focus:outline-none focus:ring-1 focus:ring-custom-green" 
-                        value={selectedDefi} 
-                        onChange={(e) => setSelectedDefi(e.target.value)}>
+                            name="challenge" 
+                            className="w-full p-3 border rounded-bl-xl rounded-tr-xl border-custom-green focus:outline-none focus:ring-1 focus:ring-custom-green" 
+                            value={selectedDefi} 
+                            onChange={(e) => setSelectedDefi(e.target.value)}>
 
                             <option value="">-- Aucun défi sélectionné --</option>
-                            <option value="Planter 100 arbres">Planter 100 arbres</option>
-                            <option value="Aider 100 inconnus">Aider 100 inconnus</option>
-                            <option value="Nettoyer l'espace public">Nettoyer l'espace public</option>
+                            {challenges.map(challenge => (
+                                <option key={challenge.id} value={challenge.id}>
+                                    {challenge.title}
+                                </option>
+                            ))}
                         </select>
                     </div>
 
                     <div>
                         <label className="block font-bold">Image</label>
-                        <input type="file" name="image" className="w-full p-3" />
+                        <input type="file" name="imageFile" className="w-full p-3" />
                     </div>
 
                     <div>
@@ -172,7 +325,7 @@ const Publish = () => {
                     
                     <p className="text-sm">* Champs obligatoire</p>
                     <div className="flex justify-end items-center">
-                        <button type="submit" className="flex items-center px-4 py-2 bg-custom-green border-custom-yellow border rounded-bl-xl rounded-tr-xl text-white font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors">
+                        <button type="submit" className="flex items-center px-4 py-2 bg-custom-green border-custom-yellow border rounded-bl-xl rounded-tr-xl text-white font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors" aria-label="Envoyer">
                             <span>Envoyer</span>
                                 <FaCircleArrowRight className="ml-2" />
                             </button>
@@ -182,7 +335,7 @@ const Publish = () => {
             </div>
             ) : (
                 <div className="w-full max-w-xl bg-white p-8 rounded-xl shadow-lg text-center space-y-4">
-                    <h2 className="text-2xl font-bold text-custom-greyd">Ton acte a été publé avec succès !</h2>
+                    <h2 className="text-2xl font-bold text-custom-greyd">Ton acte a été publié avec succès !</h2>
                     <p className="text-md">Merci d'avoir partagé ton acte ! Voici le lien d'invitation à envoyer à la personne que tu as aidée</p>
 
                     <div className="bg-custom-grey p-3 rounded-lg flex items-center justify-between text-sm">
@@ -194,7 +347,7 @@ const Publish = () => {
                     
                     </div>
 
-                    <button onClick={handleReset} className="mt-6 px-4 py-2 bg-custom-green border-custom-yellow border rounded-bl-xl rounded-tr-xl text-white font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors">Publier un autre acte</button>
+                    <button onClick={handleReset} className="mt-6 px-4 py-2 bg-custom-green border-custom-yellow border rounded-bl-xl rounded-tr-xl text-white font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors" aria-label="Publier un autre acte">Publier un autre acte</button>
                 </div>
             )}
         </div>

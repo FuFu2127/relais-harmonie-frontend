@@ -65,7 +65,7 @@ const ForgotPasswordModal = ({ isOpen, onClose, onBackToLogin}) => {
                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-custom-grey border-custom-green border-2 rounded-xl px-4 py-2 focus:outline-none focus:ring-1 focus:ring-custom-green" placeholder="Adresse email*" aria-label="Adresse email"/>
                 </div>
 
-                <button className="w-full text-custom-greyd py-2 px-4 rounded-xl border-2 border-custom-green hover:bg-custom-greenl hover:text-white hover:border-custom-green transition-colors" onClick={handleSendEmail}>Réinitialiser le mot de passe</button>
+                <button className="w-full text-custom-greyd py-2 px-4 rounded-xl border-2 border-custom-green hover:bg-custom-greenl hover:text-white hover:border-custom-green transition-colors" aria-label="Réinitialiser le mot de passe" onClick={handleSendEmail}>Réinitialiser le mot de passe</button>
             </div>
         </div>
     );

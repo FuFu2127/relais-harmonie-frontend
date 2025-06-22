@@ -36,7 +36,7 @@ const Contact = () => {
 
             try {
                 await axios.post(
-                    "http://localhost:8000/api/contacts",
+                    "http://localhost:8000/contact/new",
                     {
                         firstName: firstname,
                         name: name,
@@ -46,7 +46,7 @@ const Contact = () => {
                     },
                     {
                         headers: {
-                            "Content-Type": "application/ld+json",
+                            "Content-Type": "application/json",
                         },
                     }
                 );
@@ -123,7 +123,7 @@ const Contact = () => {
 
                 <p className="text-sm">* Champs obligatoire</p>
                 <div className="flex justify-end items-center">
-                    <button type="submit" className="flex items-center px-4 py-2 bg-custom-green border-custom-yellow border rounded-bl-xl rounded-tr-xl text-white font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors">
+                    <button type="submit" className="flex items-center px-4 py-2 bg-custom-green border-custom-yellow border rounded-bl-xl rounded-tr-xl text-white font-bold hover:bg-custom-yellow hover:text-custom-green hover:border-custom-green transition-colors" aria-label="Envoyer le message">
                         <span>Envoyer</span>
                         <FaCircleArrowRight className="ml-2" />
                     </button>

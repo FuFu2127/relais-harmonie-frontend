@@ -85,7 +85,7 @@ const LoginModal = ({ isOpen, onClose, onForgotPassword, onRegister, onLoginSucc
                     <p>Première fois sur le site ? <span className="hover:underline cursor-pointer font-bold" onClick={onRegister}>Inscris-toi</span></p>
                 </div>
 
-                <button className="w-full text-custom-greyd py-2 px-4 rounded-xl border-2 border-custom-green hover:bg-custom-greenl hover:text-white hover:border-custom-green transition-colors" onClick={handleLogin}>Se connecter</button>
+                <button className="w-full text-custom-greyd py-2 px-4 rounded-xl border-2 border-custom-green hover:bg-custom-greenl hover:text-white hover:border-custom-green transition-colors" aria-label="Se connecter" onClick={handleLogin}>Se connecter</button>
             </div>
         </div>
     );

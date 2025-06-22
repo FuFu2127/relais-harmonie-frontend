@@ -60,7 +60,7 @@ const Home = () => {
     
     // Code pour le back
     /*useEffect(() => {
-        //axios.get('/api/stats')
+        //axios.get('http://localhost:8000/api/')
         //.then(response => {
             //setStats(response.data);
             //setLoading(false);

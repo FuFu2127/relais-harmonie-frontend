@@ -98,7 +98,7 @@ const RegisterModal = ({ isOpen, onClose, onLogin}) => {
                     <p>Deja inscrit ? <span className="hover:underline cursor-pointer font-bold" onClick={onLogin}>Se connecter</span></p>
                 </div>
 
-                <button className="w-full text-custom-greyd py-2 px-4 rounded-xl border-2 border-custom-green hover:bg-custom-greenl hover:text-white hover:border-custom-green transition-colors" onClick={handleRegister}>Valider</button>
+                <button className="w-full text-custom-greyd py-2 px-4 rounded-xl border-2 border-custom-green hover:bg-custom-greenl hover:text-white hover:border-custom-green transition-colors" aria-label="Valider" onClick={handleRegister}>Valider</button>
             </div>
         </div>
     );

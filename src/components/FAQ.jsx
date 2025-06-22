@@ -36,7 +36,7 @@ const faqs = [
 
     {
         question: "Comment signaler un contenu inapproprié ?",
-        answer: "Si vous voyez un acte ou un commentaire qui ne respecte pas nos valeurs utilisez le bouton signaler à côté du contenu. Notre équipe examinera votre signalement dans les plus bref délais.",
+        answer: "Si vous voyez un acte ou un commentaire qui ne respecte pas nos valeurs n'hésitez pas nous contacter. Notre équipe examinera votre signalement dans les plus bref délais.",
     },
 ];
 
@@ -56,7 +56,7 @@ const FAQ = () => {
             <div className="space-y-4">
                 {faqs.map((faq, index) => ( // on map chaque question et réponse dans un tableau
                     <div key={index} className="border border-custom-grey rounded-xl p-8 shadow-sm bg-white">
-                        <button onClick={() => toggleFAQ(index)} className="flex justify-between items-center w-full font-semibold text-custom-greyd m-2">
+                        <button onClick={() => toggleFAQ(index)} className="flex justify-between items-center w-full font-semibold text-custom-greyd m-2" aria-label="Fleche pour ouvrir la question">
                             {faq.question}
                             {openIndex === index ? <FaCircleChevronDown /> : <FaCircleChevronRight />}
                         </button>
