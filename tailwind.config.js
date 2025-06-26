@@ -1,5 +1,4 @@
 /** @type {import('tailwindcss').Config} */
-import textStroke from 'tailwindcss-text-stroke';
 
 export default {
   content: [
@@ -13,8 +12,6 @@ export default {
         'custom-yellow': '#CCDE1A',
         'custom-green' : '#168108',
         'custom-greenl' : '#69AD32',
-        'custom-linear1' : '#A4CE82',
-        'custom-linear2' : '#3B951B',
         'custom-grey' : '#E7E7E7',
         'custom-greyl' : '#D9D9D9',
       },
@@ -28,6 +25,6 @@ export default {
     },
     },
   },
-  plugins: [textStroke],
+  plugins: [],
 }
 
